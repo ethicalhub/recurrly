@@ -1,50 +1,89 @@
-# Welcome to your Expo app 👋
+# Recurrly
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A mobile subscription tracker built with React Native and Expo. Track, analyze, and manage all your recurring subscriptions in one place — see upcoming renewals, monitor spending insights, and stay on top of your finances.
 
-## Get started
+## Screenshots
 
-1. Install dependencies
+<table>
+  <tr>
+    <td><img src="docs/authscreen.jpg" width="180" alt="Auth Screen" /></td>
+    <td><img src="docs/homescreen.jpg" width="180" alt="Home Screen" /></td>
+    <td><img src="docs/subscriptionscreen.jpg" width="180" alt="Subscriptions Screen" /></td>
+    <td><img src="docs/insightsscreen.jpg" width="180" alt="Insights Screen" /></td>
+    <td><img src="docs/dashboardscreen.jpg" width="180" alt="Dashboard Screen" /></td>
+  </tr>
+  <tr>
+    <td align="center">Auth</td>
+    <td align="center">Home</td>
+    <td align="center">Subscriptions</td>
+    <td align="center">Insights</td>
+    <td align="center">Dashboard</td>
+  </tr>
+</table>
+
+## Tech Stack
+
+| Layer         | Technology                              |
+| ------------- | --------------------------------------- |
+| Framework     | React Native 0.81 + Expo SDK 54        |
+| Router        | Expo Router v6 (file-based routing)     |
+| Styling       | NativeWind v5 + Tailwind CSS v4         |
+| Auth          | Clerk (`@clerk/expo`)                   |
+| State         | Zustand v5                              |
+| Language      | TypeScript 5.9 (strict mode)            |
+| Fonts         | Plus Jakarta Sans (via expo-font)       |
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+- [Expo Go](https://expo.dev/go) app on your device, or an Android/iOS emulator
+
+### Setup
+
+1. **Clone the repo**
+
+   ```bash
+   git clone <repo-url>
+   cd recurrly
+   ```
+
+2. **Install dependencies**
 
    ```bash
    npm install
    ```
 
-2. Start the app
+3. **Configure environment variables**
+
+   Create a `.env` file in the project root:
+
+   ```
+   EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your_key_here
+   ```
+
+   Get your publishable key from the [Clerk Dashboard](https://dashboard.clerk.com).
+
+4. **Start the app**
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+   Scan the QR code with Expo Go, or press `a` for Android emulator / `i` for iOS simulator.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Project Structure
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
 ```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+app/
+  _layout.tsx          # Root layout with Clerk provider & auth guard
+  onboarding.tsx       # Welcome / landing screen
+  (auth)/              # Sign-in, sign-up, email verification
+  (tabs)/              # Main app tabs (home, subscriptions, insights, settings)
+components/            # Reusable UI components
+constants/             # Theme colors, icons, images, static data
+lib/                   # Utilities & validation helpers
+store/                 # Zustand state management
+```

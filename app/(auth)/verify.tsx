@@ -1,53 +1,72 @@
 import { AuthHeader } from "@/components/AuthHeader";
-import { authStyles } from "@/constants/authStyles";
-import { sanitizeOtpCode } from "@/lib/validation";
+import { colors } from "@/constants/theme";
 import { useSignUp } from "@clerk/expo";
-import { type Href, useRouter } from "expo-router";
+import { clsx } from "clsx";
+import { useRouter } from "expo-router";
+import { styled } from "nativewind";
 import { useState } from "react";
 import {
-    ActivityIndicator,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+
+import { SafeAreaView as RNSafeAreaView } from "react-native-safe-area-context";
+
+const SafeAreaView = styled(RNSafeAreaView);
 
 export default function Verify() {
-  const { signUp, errors, fetchStatus } = useSignUp();
+  const { signUp } = useSignUp();
   const router = useRouter();
 
   const [code, setCode] = useState("");
   const [networkError, setNetworkError] = useState("");
   const [isResending, setIsResending] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const handleVerify = async () => {
+    if (!signUp) return;
     setNetworkError("");
+    setIsVerifying(true);
     try {
-      await signUp.verifications.verifyEmailCode({ code });
-      if (signUp.status === "complete") {
-        await signUp.finalize({
-          navigate: ({ decorateUrl }) => {
-            router.replace(decorateUrl("/") as Href);
-          },
-        });
+      const { error } = await signUp!.verifications.verifyEmailCode({ code });
+      if (error) {
+        setNetworkError("Verification failed. Check the code and try again.");
+        return;
+      }
+      if (signUp!.status === "complete") {
+        const { error: finalizeError } = await signUp!.finalize();
+        if (finalizeError) {
+          setNetworkError("Failed to complete sign-up. Please try again.");
+        } else {
+          router.replace("/(tabs)");
+        }
+      } else {
+        setNetworkError("Verification incomplete. Please try again.");
       }
     } catch {
       setNetworkError("Verification failed. Check the code and try again.");
+    } finally {
+      setIsVerifying(false);
     }
   };
 
   const handleResend = async () => {
-    if (isResending || fetchStatus === "fetching") return;
+    if (!signUp || isResending || isVerifying) return;
     setCode("");
     setNetworkError("");
     setIsResending(true);
     try {
-      await signUp.verifications.sendEmailCode();
+      const { error } = await signUp!.verifications.sendEmailCode();
+      if (error) {
+        setNetworkError("Failed to resend code. Please try again.");
+      }
     } catch {
       setNetworkError("Failed to resend code. Please try again.");
     } finally {
@@ -56,76 +75,75 @@ export default function Verify() {
   };
 
   return (
-    <SafeAreaView style={authStyles.container}>
+    <SafeAreaView className="flex-1 bg-background">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={authStyles.keyboardAvoid}
+        className="flex-1"
       >
         <ScrollView
-          contentContainerStyle={authStyles.scrollContent}
+          contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <View style={authStyles.inner}>
+          <View className="auth-content">
             <AuthHeader />
 
-            <Text style={authStyles.title}>Check your email</Text>
-            <Text style={authStyles.subtitle}>
+            <Text className="auth-title">Check your email</Text>
+            <Text className="auth-subtitle">
               Enter the 6-digit code sent to{"\n"}
-              <Text style={localStyles.emailHighlight}>
-                {signUp.emailAddress ?? "your email"}
+              <Text className="font-sans-semibold text-primary">
+                {signUp?.emailAddress ?? "your email"}
               </Text>
             </Text>
 
-            <View style={authStyles.form}>
+            <View className="auth-card auth-form">
               {networkError ? (
-                <Text style={authStyles.networkError}>{networkError}</Text>
+                <Text className="auth-network-error">{networkError}</Text>
               ) : null}
 
-              <Text style={authStyles.label}>Verification code</Text>
-              <TextInput
-                style={[authStyles.input, authStyles.codeInput]}
-                value={code}
-                onChangeText={(v) => setCode(sanitizeOtpCode(v))}
-                placeholder="000000"
-                placeholderTextColor="rgba(0,0,0,0.25)"
-                keyboardType="number-pad"
-                maxLength={6}
-                autoFocus
-                returnKeyType="done"
-                onSubmitEditing={handleVerify}
-              />
-              {errors.fields.code && (
-                <Text style={authStyles.errorText}>
-                  {errors.fields.code.message}
-                </Text>
-              )}
+              <View className="auth-field">
+                <Text className="auth-label">Verification code</Text>
+                <TextInput
+                  style={styles.input}
+                  value={code}
+                  onChangeText={(v) => setCode(v)}
+                  placeholder="000000"
+                  placeholderTextColor={colors.mutedForeground}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  returnKeyType="done"
+                  onSubmitEditing={handleVerify}
+                  accessibilityLabel="Verification code"
+                />
+              </View>
 
               <Pressable
-                style={({ pressed }) => [
-                  authStyles.button,
-                  (fetchStatus === "fetching" || code.length < 6) &&
-                    authStyles.buttonDisabled,
-                  pressed && authStyles.buttonPressed,
-                ]}
+                className={clsx(
+                  "auth-button",
+                  (isVerifying || code.length < 6) && "auth-button-disabled",
+                )}
                 onPress={handleVerify}
-                disabled={fetchStatus === "fetching" || code.length < 6}
+                disabled={isVerifying || code.length < 6}
+                accessibilityRole="button"
+                accessibilityLabel="Verify email"
               >
-                {fetchStatus === "fetching" ? (
+                {isVerifying ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={authStyles.buttonText}>Verify</Text>
+                  <Text className="auth-button-text">Verify</Text>
                 )}
               </Pressable>
 
               <Pressable
+                className="auth-link-row"
                 onPress={handleResend}
-                disabled={isResending || fetchStatus === "fetching"}
-                style={authStyles.resendRow}
+                disabled={isResending || isVerifying}
+                accessibilityRole="button"
               >
                 {isResending ? (
                   <ActivityIndicator color="#ea7a53" />
                 ) : (
-                  <Text style={authStyles.resendText}>
+                  <Text className="auth-link">
                     {"Didn't receive a code? Resend"}
                   </Text>
                 )}
@@ -138,9 +156,16 @@ export default function Verify() {
   );
 }
 
-const localStyles = StyleSheet.create({
-  emailHighlight: {
-    fontFamily: "sans-semibold",
-    color: "#081126",
+const styles = StyleSheet.create({
+  input: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    fontSize: 16,
+    color: colors.foreground,
+    textAlign: "center",
   },
 });

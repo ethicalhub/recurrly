@@ -1,25 +1,31 @@
 import { AuthHeader } from "@/components/AuthHeader";
-import { authStyles } from "@/constants/authStyles";
+import { colors } from "@/constants/theme";
 import {
   sanitizeEmail,
   sanitizeName,
   validateSignUpForm,
 } from "@/lib/validation";
 import { useSignUp } from "@clerk/expo";
+import { clsx } from "clsx";
 import { type Href, Link, useRouter } from "expo-router";
+import { styled } from "nativewind";
 import { useRef, useState } from "react";
+
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+
+import { SafeAreaView as RNSafeAreaView } from "react-native-safe-area-context";
+
+const SafeAreaView = styled(RNSafeAreaView);
+const PLACEHOLDER_COLOR = colors.mutedForeground;
 
 export default function SignUp() {
   const { signUp, errors, fetchStatus } = useSignUp();
@@ -80,37 +86,38 @@ export default function SignUp() {
     fetchStatus === "fetching";
 
   return (
-    <SafeAreaView style={authStyles.container}>
+    <SafeAreaView className="flex-1 bg-background">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={authStyles.keyboardAvoid}
+        className="flex-1"
       >
         <ScrollView
-          contentContainerStyle={authStyles.scrollContent}
+          contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <View style={authStyles.inner}>
+          <View className="auth-content">
             <AuthHeader />
 
-            <Text style={authStyles.title}>Create an account</Text>
-            <Text style={authStyles.subtitle}>
+            <Text className="auth-title">Create an account</Text>
+            <Text className="auth-subtitle">
               Start managing your subscriptions
             </Text>
 
-            <View style={authStyles.form}>
+            <View className="auth-card auth-form">
               {networkError ? (
-                <Text style={authStyles.networkError}>{networkError}</Text>
+                <Text className="auth-network-error">{networkError}</Text>
               ) : null}
 
               {/* Name row */}
-              <View style={localStyles.nameRow}>
-                <View style={localStyles.nameField}>
-                  <Text style={authStyles.label}>First Name</Text>
+              <View className="flex-row gap-3">
+                <View className="flex-1 gap-2">
+                  <Text className="auth-label">First Name</Text>
                   <TextInput
-                    style={[
-                      authStyles.input,
-                      fieldErrors.firstName ? authStyles.inputError : null,
-                    ]}
+                    className={clsx(
+                      "auth-input",
+                      fieldErrors.firstName && "auth-input-error",
+                    )}
                     value={firstName}
                     onChangeText={(v) => {
                       setFirstName(v);
@@ -118,28 +125,27 @@ export default function SignUp() {
                         setFieldErrors((p) => ({ ...p, firstName: "" }));
                     }}
                     placeholder="First name"
-                    placeholderTextColor="rgba(0,0,0,0.35)"
+                    placeholderTextColor={PLACEHOLDER_COLOR}
                     autoComplete="given-name"
                     textContentType="givenName"
                     autoCapitalize="words"
                     returnKeyType="next"
                     onSubmitEditing={() => lastNameRef.current?.focus()}
                     blurOnSubmit={false}
+                    accessibilityLabel="First name"
                   />
                   {fieldErrors.firstName ? (
-                    <Text style={authStyles.errorText}>
-                      {fieldErrors.firstName}
-                    </Text>
+                    <Text className="auth-error">{fieldErrors.firstName}</Text>
                   ) : null}
                 </View>
-                <View style={localStyles.nameField}>
-                  <Text style={authStyles.label}>Last Name</Text>
+                <View className="flex-1 gap-2">
+                  <Text className="auth-label">Last Name</Text>
                   <TextInput
                     ref={lastNameRef}
-                    style={[
-                      authStyles.input,
-                      fieldErrors.lastName ? authStyles.inputError : null,
-                    ]}
+                    className={clsx(
+                      "auth-input",
+                      fieldErrors.lastName && "auth-input-error",
+                    )}
                     value={lastName}
                     onChangeText={(v) => {
                       setLastName(v);
@@ -147,129 +153,134 @@ export default function SignUp() {
                         setFieldErrors((p) => ({ ...p, lastName: "" }));
                     }}
                     placeholder="Last name"
-                    placeholderTextColor="rgba(0,0,0,0.35)"
+                    placeholderTextColor={PLACEHOLDER_COLOR}
                     autoComplete="family-name"
                     textContentType="familyName"
                     autoCapitalize="words"
                     returnKeyType="next"
                     onSubmitEditing={() => emailRef.current?.focus()}
                     blurOnSubmit={false}
+                    accessibilityLabel="Last name"
                   />
                   {fieldErrors.lastName ? (
-                    <Text style={authStyles.errorText}>
-                      {fieldErrors.lastName}
-                    </Text>
+                    <Text className="auth-error">{fieldErrors.lastName}</Text>
                   ) : null}
                 </View>
               </View>
 
-              <Text style={[authStyles.label, authStyles.labelSpacing]}>
-                Email
-              </Text>
-              <TextInput
-                ref={emailRef}
-                style={[
-                  authStyles.input,
-                  fieldErrors.email ? authStyles.inputError : null,
-                ]}
-                value={emailAddress}
-                onChangeText={(v) => {
-                  setEmailAddress(v);
-                  if (fieldErrors.email)
-                    setFieldErrors((p) => ({ ...p, email: "" }));
-                }}
-                placeholder="Enter your email"
-                placeholderTextColor="rgba(0,0,0,0.35)"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                textContentType="emailAddress"
-                returnKeyType="next"
-                onSubmitEditing={() => passwordRef.current?.focus()}
-                blurOnSubmit={false}
-              />
-              {fieldErrors.email || errors.fields.emailAddress ? (
-                <Text style={authStyles.errorText}>
-                  {fieldErrors.email || errors.fields.emailAddress?.message}
-                </Text>
-              ) : null}
+              <View className="auth-field">
+                <Text className="auth-label">Email</Text>
+                <TextInput
+                  ref={emailRef}
+                  className={clsx(
+                    "auth-input",
+                    (fieldErrors.email || errors.fields.emailAddress) &&
+                      "auth-input-error",
+                  )}
+                  value={emailAddress}
+                  onChangeText={(v) => {
+                    setEmailAddress(v);
+                    if (fieldErrors.email)
+                      setFieldErrors((p) => ({ ...p, email: "" }));
+                  }}
+                  placeholder="Enter your email"
+                  placeholderTextColor={PLACEHOLDER_COLOR}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  textContentType="emailAddress"
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                  blurOnSubmit={false}
+                  accessibilityLabel="Email address"
+                />
+                {(fieldErrors.email || errors.fields.emailAddress) && (
+                  <Text className="auth-error">
+                    {fieldErrors.email || errors.fields.emailAddress?.message}
+                  </Text>
+                )}
+              </View>
 
-              <Text style={[authStyles.label, authStyles.labelSpacing]}>
-                Password
-              </Text>
-              <TextInput
-                ref={passwordRef}
-                style={[
-                  authStyles.input,
-                  fieldErrors.password ? authStyles.inputError : null,
-                ]}
-                value={password}
-                onChangeText={(v) => {
-                  setPassword(v);
-                  if (fieldErrors.password)
-                    setFieldErrors((p) => ({
-                      ...p,
-                      password: "",
-                      confirmPassword: "",
-                    }));
-                }}
-                placeholder="Enter your password"
-                placeholderTextColor="rgba(0,0,0,0.35)"
-                secureTextEntry
-                autoComplete="new-password"
-                textContentType="newPassword"
-                returnKeyType="next"
-                onSubmitEditing={() => confirmRef.current?.focus()}
-                blurOnSubmit={false}
-              />
-              {fieldErrors.password || errors.fields.password ? (
-                <Text style={authStyles.errorText}>
-                  {fieldErrors.password || errors.fields.password?.message}
-                </Text>
-              ) : null}
+              <View className="auth-field">
+                <Text className="auth-label">Password</Text>
+                <TextInput
+                  ref={passwordRef}
+                  className={clsx(
+                    "auth-input",
+                    (fieldErrors.password || errors.fields.password) &&
+                      "auth-input-error",
+                  )}
+                  value={password}
+                  onChangeText={(v) => {
+                    setPassword(v);
+                    if (fieldErrors.password)
+                      setFieldErrors((p) => ({
+                        ...p,
+                        password: "",
+                        confirmPassword: "",
+                      }));
+                  }}
+                  placeholder="Enter your password"
+                  placeholderTextColor={PLACEHOLDER_COLOR}
+                  secureTextEntry
+                  autoComplete="new-password"
+                  textContentType="newPassword"
+                  returnKeyType="next"
+                  onSubmitEditing={() => confirmRef.current?.focus()}
+                  blurOnSubmit={false}
+                  accessibilityLabel="Password"
+                />
+                {(fieldErrors.password || errors.fields.password) && (
+                  <Text className="auth-error">
+                    {fieldErrors.password || errors.fields.password?.message}
+                  </Text>
+                )}
+              </View>
 
-              <Text style={[authStyles.label, authStyles.labelSpacing]}>
-                Confirm Password
-              </Text>
-              <TextInput
-                ref={confirmRef}
-                style={[
-                  authStyles.input,
-                  fieldErrors.confirmPassword ? authStyles.inputError : null,
-                ]}
-                value={confirmPassword}
-                onChangeText={(v) => {
-                  setConfirmPassword(v);
-                  if (fieldErrors.confirmPassword)
-                    setFieldErrors((p) => ({ ...p, confirmPassword: "" }));
-                }}
-                placeholder="Confirm your password"
-                placeholderTextColor="rgba(0,0,0,0.35)"
-                secureTextEntry
-                autoComplete="new-password"
-                textContentType="none"
-                returnKeyType="done"
-                onSubmitEditing={handleSignUp}
-              />
-              {fieldErrors.confirmPassword ? (
-                <Text style={authStyles.errorText}>
-                  {fieldErrors.confirmPassword}
-                </Text>
-              ) : null}
+              <View className="auth-field">
+                <Text className="auth-label">Confirm Password</Text>
+                <TextInput
+                  ref={confirmRef}
+                  className={clsx(
+                    "auth-input",
+                    fieldErrors.confirmPassword && "auth-input-error",
+                  )}
+                  value={confirmPassword}
+                  onChangeText={(v) => {
+                    setConfirmPassword(v);
+                    if (fieldErrors.confirmPassword)
+                      setFieldErrors((p) => ({ ...p, confirmPassword: "" }));
+                  }}
+                  placeholder="Confirm your password"
+                  placeholderTextColor={PLACEHOLDER_COLOR}
+                  secureTextEntry
+                  autoComplete="new-password"
+                  textContentType="none"
+                  returnKeyType="done"
+                  onSubmitEditing={handleSignUp}
+                  accessibilityLabel="Confirm password"
+                />
+                {fieldErrors.confirmPassword ? (
+                  <Text className="auth-error">
+                    {fieldErrors.confirmPassword}
+                  </Text>
+                ) : null}
+              </View>
 
               <Pressable
-                style={({ pressed }) => [
-                  authStyles.button,
-                  isDisabled && authStyles.buttonDisabled,
-                  pressed && authStyles.buttonPressed,
-                ]}
+                className={clsx(
+                  "auth-button",
+                  isDisabled && "auth-button-disabled",
+                )}
                 onPress={handleSignUp}
                 disabled={isDisabled}
+                accessibilityRole="button"
+                accessibilityLabel="Create account"
               >
                 {fetchStatus === "fetching" ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={authStyles.buttonText}>Create account</Text>
+                  <Text className="auth-button-text">Create account</Text>
                 )}
               </Pressable>
 
@@ -277,13 +288,11 @@ export default function SignUp() {
               <View nativeID="clerk-captcha" />
             </View>
 
-            <View style={authStyles.footer}>
-              <Text style={authStyles.footerText}>
-                Already have an account?{" "}
-              </Text>
+            <View className="auth-link-row">
+              <Text className="auth-link-copy">Already have an account? </Text>
               <Link href="/(auth)/sign-in" asChild>
-                <Pressable>
-                  <Text style={authStyles.footerLink}>Sign in</Text>
+                <Pressable accessibilityRole="link">
+                  <Text className="auth-link">Sign in</Text>
                 </Pressable>
               </Link>
             </View>
@@ -293,13 +302,3 @@ export default function SignUp() {
     </SafeAreaView>
   );
 }
-
-const localStyles = StyleSheet.create({
-  nameRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  nameField: {
-    flex: 1,
-  },
-});

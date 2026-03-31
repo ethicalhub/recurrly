@@ -1,4 +1,4 @@
- import CreateSubscriptionModal from "@/components/CreateSubscriptionModal";
+import CreateSubscriptionModal from "@/components/CreateSubscriptionModal";
 import ListHeading from "@/components/ListHeading";
 import SubscriptionCard from "@/components/SubscriptionCard";
 import UpcomingSubscriptionCard from "@/components/UpcomingSubscriptionCard";
@@ -7,11 +7,10 @@ import {
   HOME_USER,
   UPCOMING_SUBSCRIPTIONS,
 } from "@/constants/data";
-import { useSubscriptionsStore } from "@/store/useSubscriptionsStore";
-import { icons } from "@/constants/icons";
 import images from "@/constants/images";
 import "@/global.css";
 import { formatCurrency } from "@/lib/utils";
+import { useSubscriptionsStore } from "@/store/useSubscriptionsStore";
 import dayjs from "dayjs";
 import { styled } from "nativewind";
 import { useState } from "react";
@@ -35,12 +34,19 @@ export default function App() {
                 <Image source={images.avatar} className="home-avatar" />
                 <Text className="home-user-name">{HOME_USER.name}</Text>
               </View>
-              <Pressable onPress={() => setModalVisible(true)}>
-                <Image source={icons.add} className="home-add-icon" />
-              </Pressable>
             </View>
             <View className="home-balance-card">
-              <Text className="home-balance-text">Balance</Text>
+              <View className="home-balance-top-row">
+                <Text className="home-balance-label">Balance</Text>
+                <Pressable
+                  className="home-balance-add-btn"
+                  onPress={() => setModalVisible(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Add subscription"
+                >
+                  <Text className="home-balance-add-text">+</Text>
+                </Pressable>
+              </View>
               <View className="home-balance-row">
                 <Text className="home-balance-amount">
                   {formatCurrency(HOME_BALANCE.amount)}

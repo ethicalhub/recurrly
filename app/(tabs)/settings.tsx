@@ -1,13 +1,10 @@
 import { useClerk, useUser } from "@clerk/expo";
+import { styled } from "nativewind";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { SafeAreaView as RNSafeAreaView } from "react-native-safe-area-context";
+
+const SafeAreaView = styled(RNSafeAreaView);
 
 const Settings = () => {
   const { signOut } = useClerk();
@@ -30,139 +27,53 @@ const Settings = () => {
 
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(" ");
   const email = user?.emailAddresses[0]?.emailAddress;
+  const initial = (user?.firstName?.[0] ?? email?.[0] ?? "?").toUpperCase();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.heading}>Settings</Text>
+    <SafeAreaView className="flex-1 bg-background">
+      <Text className="settings-heading">Settings</Text>
 
       {/* Account card */}
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>ACCOUNT</Text>
-        <View style={styles.cardRow}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {(user?.firstName?.[0] ?? "?").toUpperCase()}
-            </Text>
+      <View className="settings-card px-6">
+        <Text className="settings-card-label">ACCOUNT</Text>
+        <View className="settings-card-row">
+          <View className="settings-avatar">
+            <Text className="settings-avatar-text">{initial}</Text>
           </View>
-          <View style={styles.userInfo}>
-            {fullName ? <Text style={styles.userName}>{fullName}</Text> : null}
-            {email ? <Text style={styles.userEmail}>{email}</Text> : null}
+          <View className="flex-1 gap-0.5">
+            {fullName ? (
+              <Text className="settings-user-name">{fullName}</Text>
+            ) : null}
+            {email ? (
+              <Text className="settings-user-email">{email}</Text>
+            ) : null}
           </View>
         </View>
       </View>
 
       {/* Sign out button */}
       <Pressable
-        style={({ pressed }) => [
-          styles.signOutButton,
-          isLoading && styles.signOutButtonDisabled,
-          pressed && styles.signOutButtonPressed,
-        ]}
+        className={
+          isLoading
+            ? "settings-sign-out-btn opacity-60"
+            : "settings-sign-out-btn"
+        }
         onPress={handleSignOut}
         disabled={isLoading}
+        accessibilityRole="button"
+        accessibilityLabel="Sign out"
       >
         {isLoading ? (
           <ActivityIndicator color="#dc2626" />
         ) : (
-          <Text style={styles.signOutText}>Sign out</Text>
+          <Text className="settings-sign-out-text">Sign out</Text>
         )}
       </Pressable>
       {networkError ? (
-        <Text style={styles.networkError}>{networkError}</Text>
+        <Text className="settings-error">{networkError}</Text>
       ) : null}
     </SafeAreaView>
   );
 };
 
 export default Settings;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff9e3",
-    paddingHorizontal: 24,
-    paddingTop: 24,
-  },
-  heading: {
-    fontFamily: "sans-bold",
-    fontSize: 26,
-    color: "#081126",
-    marginBottom: 24,
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  cardLabel: {
-    fontFamily: "sans-semibold",
-    fontSize: 11,
-    color: "rgba(0,0,0,0.4)",
-    letterSpacing: 1.2,
-    marginBottom: 14,
-  },
-  cardRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-  },
-  avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: "#ea7a53",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: {
-    fontFamily: "sans-bold",
-    fontSize: 18,
-    color: "#fff",
-  },
-  userInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  userName: {
-    fontFamily: "sans-semibold",
-    fontSize: 16,
-    color: "#081126",
-  },
-  userEmail: {
-    fontFamily: "sans-regular",
-    fontSize: 13,
-    color: "rgba(0,0,0,0.5)",
-  },
-  signOutButton: {
-    borderWidth: 1.5,
-    borderColor: "#dc2626",
-    borderRadius: 12,
-    paddingVertical: 15,
-    alignItems: "center",
-    backgroundColor: "rgba(220,38,38,0.05)",
-  },
-  signOutButtonDisabled: {
-    opacity: 0.6,
-  },
-  signOutButtonPressed: {
-    opacity: 0.7,
-  },
-  signOutText: {
-    fontFamily: "sans-semibold",
-    fontSize: 15,
-    color: "#dc2626",
-  },
-  networkError: {
-    fontFamily: "sans-regular",
-    fontSize: 13,
-    color: "#dc2626",
-    textAlign: "center",
-    marginTop: 12,
-  },
-});

@@ -1,5 +1,43 @@
 import { icons } from "./icons";
 
+export const INSIGHTS_CHART: InsightChartEntry[] = [
+  { day: "Mon", value: 30 },
+  { day: "Tue", value: 28 },
+  { day: "Wed", value: 20 },
+  { day: "Thu", value: 40, active: true },
+  { day: "Fri", value: 22 },
+  { day: "Sat", value: 18 },
+  { day: "Sun", value: 15 },
+];
+
+export const INSIGHTS_EXPENSES = {
+  label: "Expenses",
+  month: "March 2026",
+  amount: -424.63,
+  change: 12,
+};
+
+export const INSIGHTS_HISTORY: InsightHistoryItem[] = [
+  {
+    id: "claude",
+    icon: icons.claude,
+    name: "Claude",
+    date: "June 25, 12:00",
+    price: 9.84,
+    billing: "per month",
+    color: "#f5c542",
+  },
+  {
+    id: "canva",
+    icon: icons.canva,
+    name: "Canva",
+    date: "June 30, 16:00",
+    price: 43.89,
+    billing: "per month",
+    color: "#8fd1bd",
+  },
+];
+
 export const tabs: AppTab[] = [
   { name: "index", title: "Home", icon: icons.home },
   { name: "subscriptions", title: "Subscriptions", icon: icons.wallet },
@@ -7,13 +45,13 @@ export const tabs: AppTab[] = [
   { name: "settings", title: "Settings", icon: icons.setting },
 ];
 
-export const HOME_USER = {
-  name: "Adrian | JS Mastery",
-};
-
 export const HOME_BALANCE = {
   amount: 2489.48,
   nextRenewalDate: "2026-03-18T09:00:00.000Z",
+};
+
+export const HOME_USER = {
+  name: "Adrian | JS Mastery",
 };
 
 export const UPCOMING_SUBSCRIPTIONS: UpcomingSubscription[] = [

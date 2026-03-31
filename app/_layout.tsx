@@ -2,7 +2,7 @@ import "@/global.css";
 import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { useFonts } from "expo-font";
-import { Redirect, SplashScreen, Stack } from "expo-router";
+import { SplashScreen, Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
 
 SplashScreen.preventAutoHideAsync();
@@ -17,8 +17,21 @@ if (!publishableKey) {
 
 function RootNavigator() {
   const { isSignedIn, isLoaded } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    const inAuth = segments[0] === "(auth)" || segments[0] === "onboarding";
+    if (isSignedIn && inAuth) {
+      router.replace("/(tabs)");
+    } else if (!isSignedIn && !inAuth) {
+      router.replace("/onboarding");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSignedIn, isLoaded, segments[0]]);
+
   if (!isLoaded) return null;
-  if (!isSignedIn) return <Redirect href="/onboarding" />;
   return <Stack screenOptions={{ headerShown: false }} />;
 }
 

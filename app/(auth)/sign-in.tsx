@@ -1,12 +1,14 @@
 import { AuthHeader } from "@/components/AuthHeader";
-import { authStyles } from "@/constants/authStyles";
+import { colors } from "@/constants/theme";
 import {
   sanitizeEmail,
   sanitizeOtpCode,
   validateSignInForm,
 } from "@/lib/validation";
 import { useSignIn } from "@clerk/expo";
-import { type Href, Link, useRouter } from "expo-router";
+import { clsx } from "clsx";
+import { Link } from "expo-router";
+import { styled } from "nativewind";
 import { useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -18,11 +20,14 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+
+import { SafeAreaView as RNSafeAreaView } from "react-native-safe-area-context";
+
+const SafeAreaView = styled(RNSafeAreaView);
+const PLACEHOLDER_COLOR = colors.mutedForeground;
 
 export default function SignIn() {
   const { signIn, errors, fetchStatus } = useSignIn();
-  const router = useRouter();
 
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
@@ -49,11 +54,7 @@ export default function SignIn() {
       if (error) return;
 
       if (signIn.status === "complete") {
-        await signIn.finalize({
-          navigate: ({ decorateUrl }) => {
-            router.replace(decorateUrl("/") as Href);
-          },
-        });
+        await signIn.finalize();
       } else if (signIn.status === "needs_client_trust") {
         await signIn.mfa.sendEmailCode();
       }
@@ -67,11 +68,7 @@ export default function SignIn() {
     try {
       await signIn.mfa.verifyEmailCode({ code: mfaCode });
       if (signIn.status === "complete") {
-        await signIn.finalize({
-          navigate: ({ decorateUrl }) => {
-            router.replace(decorateUrl("/") as Href);
-          },
-        });
+        await signIn.finalize();
       }
     } catch {
       setNetworkError("Verification failed. Please try again.");
@@ -88,65 +85,72 @@ export default function SignIn() {
   };
 
   // MFA verification view
-  if (signIn.status === "needs_client_trust") {
+  if (signIn?.status === "needs_client_trust") {
     return (
-      <SafeAreaView style={authStyles.container}>
-        <View style={authStyles.inner}>
+      <SafeAreaView className="flex-1 bg-background">
+        <View className="auth-content">
           <AuthHeader />
-          <Text style={authStyles.title}>Verify your identity</Text>
-          <Text style={authStyles.subtitle}>
+          <Text className="auth-title">Verify your identity</Text>
+          <Text className="auth-subtitle">
             Enter the code sent to your email address
           </Text>
-          <View style={authStyles.form}>
+          <View className="auth-card auth-form">
             {networkError ? (
-              <Text style={authStyles.networkError}>{networkError}</Text>
+              <Text className="auth-network-error">{networkError}</Text>
             ) : null}
-            <Text style={authStyles.label}>Verification code</Text>
-            <TextInput
-              style={[authStyles.input, authStyles.codeInput]}
-              value={mfaCode}
-              onChangeText={(v) => setMfaCode(sanitizeOtpCode(v))}
-              placeholder="000000"
-              placeholderTextColor="rgba(0,0,0,0.25)"
-              keyboardType="number-pad"
-              maxLength={6}
-              autoFocus
-              returnKeyType="done"
-              onSubmitEditing={handleVerifyMfa}
-            />
-            {errors.fields.code && (
-              <Text style={authStyles.errorText}>
-                {errors.fields.code.message}
-              </Text>
-            )}
+            <View className="auth-field">
+              <Text className="auth-label">Verification code</Text>
+              <TextInput
+                className={clsx(
+                  "auth-input text-center",
+                  errors.fields.code && "auth-input-error",
+                )}
+                value={mfaCode}
+                onChangeText={(v) => setMfaCode(sanitizeOtpCode(v))}
+                placeholder="000000"
+                placeholderTextColor={PLACEHOLDER_COLOR}
+                keyboardType="number-pad"
+                maxLength={6}
+                autoFocus
+                returnKeyType="done"
+                onSubmitEditing={handleVerifyMfa}
+                accessibilityLabel="Verification code"
+              />
+              {errors.fields.code && (
+                <Text className="auth-error">{errors.fields.code.message}</Text>
+              )}
+            </View>
             <Pressable
-              style={({ pressed }) => [
-                authStyles.button,
+              className={clsx(
+                "auth-button",
                 (fetchStatus === "fetching" || !mfaCode) &&
-                  authStyles.buttonDisabled,
-                pressed && authStyles.buttonPressed,
-              ]}
+                  "auth-button-disabled",
+              )}
               onPress={handleVerifyMfa}
               disabled={fetchStatus === "fetching" || !mfaCode}
+              accessibilityRole="button"
+              accessibilityLabel="Verify"
             >
               {fetchStatus === "fetching" ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={authStyles.buttonText}>Verify</Text>
+                <Text className="auth-button-text">Verify</Text>
               )}
             </Pressable>
             <Pressable
+              className="auth-link-row"
               onPress={handleResendMfa}
               disabled={fetchStatus === "fetching"}
-              style={authStyles.resendRow}
+              accessibilityRole="button"
             >
-              <Text style={authStyles.resendText}>Resend code</Text>
+              <Text className="auth-link">Resend code</Text>
             </Pressable>
             <Pressable
+              className="auth-link-row"
               onPress={() => signIn.reset()}
-              style={authStyles.resendRow}
+              accessibilityRole="button"
             >
-              <Text style={authStyles.resendText}>Start over</Text>
+              <Text className="auth-link">Start over</Text>
             </Pressable>
           </View>
         </View>
@@ -154,111 +158,118 @@ export default function SignIn() {
     );
   }
 
+  const isDisabled = !emailAddress || !password || fetchStatus === "fetching";
+
   return (
-    <SafeAreaView style={authStyles.container}>
+    <SafeAreaView className="flex-1 bg-background">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={authStyles.keyboardAvoid}
+        className="flex-1"
       >
         <ScrollView
-          contentContainerStyle={authStyles.scrollContent}
+          contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <View style={authStyles.inner}>
+          <View className="auth-content">
             <AuthHeader />
 
-            <Text style={authStyles.title}>Welcome back</Text>
-            <Text style={authStyles.subtitle}>
+            <Text className="auth-title">Welcome back</Text>
+            <Text className="auth-subtitle">
               Sign in to continue managing your subscriptions
             </Text>
 
-            <View style={authStyles.form}>
+            <View className="auth-card auth-form">
               {networkError ? (
-                <Text style={authStyles.networkError}>{networkError}</Text>
+                <Text className="auth-network-error">{networkError}</Text>
               ) : null}
 
-              <Text style={authStyles.label}>Email</Text>
-              <TextInput
-                style={[
-                  authStyles.input,
-                  fieldErrors.email ? authStyles.inputError : null,
-                ]}
-                value={emailAddress}
-                onChangeText={(v) => {
-                  setEmailAddress(v);
-                  if (fieldErrors.email)
-                    setFieldErrors((p) => ({ ...p, email: "" }));
-                }}
-                placeholder="Enter your email"
-                placeholderTextColor="rgba(0,0,0,0.35)"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                textContentType="emailAddress"
-                returnKeyType="next"
-                onSubmitEditing={() => passwordRef.current?.focus()}
-                blurOnSubmit={false}
-              />
-              {fieldErrors.email || errors.fields.identifier ? (
-                <Text style={authStyles.errorText}>
-                  {fieldErrors.email || errors.fields.identifier?.message}
-                </Text>
-              ) : null}
+              <View className="auth-field">
+                <Text className="auth-label">Email</Text>
+                <TextInput
+                  className={clsx(
+                    "auth-input",
+                    (fieldErrors.email || errors.fields.identifier) &&
+                      "auth-input-error",
+                  )}
+                  value={emailAddress}
+                  onChangeText={(v) => {
+                    setEmailAddress(v);
+                    if (fieldErrors.email)
+                      setFieldErrors((p) => ({ ...p, email: "" }));
+                  }}
+                  placeholder="Enter your email"
+                  placeholderTextColor={PLACEHOLDER_COLOR}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  textContentType="emailAddress"
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                  blurOnSubmit={false}
+                  accessibilityLabel="Email address"
+                />
+                {(fieldErrors.email || errors.fields.identifier) && (
+                  <Text className="auth-error">
+                    {fieldErrors.email || errors.fields.identifier?.message}
+                  </Text>
+                )}
+              </View>
 
-              <Text style={[authStyles.label, authStyles.labelSpacing]}>
-                Password
-              </Text>
-              <TextInput
-                ref={passwordRef}
-                style={[
-                  authStyles.input,
-                  fieldErrors.password ? authStyles.inputError : null,
-                ]}
-                value={password}
-                onChangeText={(v) => {
-                  setPassword(v);
-                  if (fieldErrors.password)
-                    setFieldErrors((p) => ({ ...p, password: "" }));
-                }}
-                placeholder="Enter your password"
-                placeholderTextColor="rgba(0,0,0,0.35)"
-                secureTextEntry
-                autoComplete="current-password"
-                textContentType="password"
-                returnKeyType="done"
-                onSubmitEditing={handleSignIn}
-              />
-              {fieldErrors.password || errors.fields.password ? (
-                <Text style={authStyles.errorText}>
-                  {fieldErrors.password || errors.fields.password?.message}
-                </Text>
-              ) : null}
+              <View className="auth-field">
+                <Text className="auth-label">Password</Text>
+                <TextInput
+                  ref={passwordRef}
+                  className={clsx(
+                    "auth-input",
+                    (fieldErrors.password || errors.fields.password) &&
+                      "auth-input-error",
+                  )}
+                  value={password}
+                  onChangeText={(v) => {
+                    setPassword(v);
+                    if (fieldErrors.password)
+                      setFieldErrors((p) => ({ ...p, password: "" }));
+                  }}
+                  placeholder="Enter your password"
+                  placeholderTextColor={PLACEHOLDER_COLOR}
+                  secureTextEntry
+                  autoComplete="current-password"
+                  textContentType="password"
+                  returnKeyType="done"
+                  onSubmitEditing={handleSignIn}
+                  accessibilityLabel="Password"
+                />
+                {(fieldErrors.password || errors.fields.password) && (
+                  <Text className="auth-error">
+                    {fieldErrors.password || errors.fields.password?.message}
+                  </Text>
+                )}
+              </View>
 
               <Pressable
-                style={({ pressed }) => [
-                  authStyles.button,
-                  (!emailAddress || !password || fetchStatus === "fetching") &&
-                    authStyles.buttonDisabled,
-                  pressed && authStyles.buttonPressed,
-                ]}
+                className={clsx(
+                  "auth-button",
+                  isDisabled && "auth-button-disabled",
+                )}
                 onPress={handleSignIn}
-                disabled={
-                  !emailAddress || !password || fetchStatus === "fetching"
-                }
+                disabled={isDisabled}
+                accessibilityRole="button"
+                accessibilityLabel="Sign in"
               >
                 {fetchStatus === "fetching" ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={authStyles.buttonText}>Sign in</Text>
+                  <Text className="auth-button-text">Sign in</Text>
                 )}
               </Pressable>
             </View>
 
-            <View style={authStyles.footer}>
-              <Text style={authStyles.footerText}>New to Recurly? </Text>
+            <View className="auth-link-row">
+              <Text className="auth-link-copy">Don't have an account? </Text>
               <Link href="/(auth)/sign-up" asChild>
-                <Pressable>
-                  <Text style={authStyles.footerLink}>Create an account</Text>
+                <Pressable accessibilityRole="link">
+                  <Text className="auth-link">Create an account</Text>
                 </Pressable>
               </Link>
             </View>

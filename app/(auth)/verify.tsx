@@ -2,7 +2,6 @@ import { AuthHeader } from "@/components/AuthHeader";
 import { colors } from "@/constants/theme";
 import { useSignUp } from "@clerk/expo";
 import { clsx } from "clsx";
-import { useRouter } from "expo-router";
 import { styled } from "nativewind";
 import { useState } from "react";
 import {
@@ -23,7 +22,6 @@ const SafeAreaView = styled(RNSafeAreaView);
 
 export default function Verify() {
   const { signUp } = useSignUp();
-  const router = useRouter();
 
   const [code, setCode] = useState("");
   const [networkError, setNetworkError] = useState("");
@@ -44,8 +42,6 @@ export default function Verify() {
         const { error: finalizeError } = await signUp!.finalize();
         if (finalizeError) {
           setNetworkError("Failed to complete sign-up. Please try again.");
-        } else {
-          router.replace("/(tabs)");
         }
       } else {
         setNetworkError("Verification incomplete. Please try again.");

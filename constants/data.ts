@@ -50,10 +50,6 @@ export const HOME_BALANCE = {
   nextRenewalDate: "2026-03-18T09:00:00.000Z",
 };
 
-export const HOME_USER = {
-  name: "Adrian | JS Mastery",
-};
-
 export const UPCOMING_SUBSCRIPTIONS: UpcomingSubscription[] = [
   {
     id: "spotify",

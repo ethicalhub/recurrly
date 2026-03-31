@@ -4,13 +4,12 @@ import SubscriptionCard from "@/components/SubscriptionCard";
 import UpcomingSubscriptionCard from "@/components/UpcomingSubscriptionCard";
 import {
   HOME_BALANCE,
-  HOME_USER,
   UPCOMING_SUBSCRIPTIONS,
 } from "@/constants/data";
-import images from "@/constants/images";
 import "@/global.css";
 import { formatCurrency } from "@/lib/utils";
 import { useSubscriptionsStore } from "@/store/useSubscriptionsStore";
+import { useUser } from "@clerk/expo";
 import dayjs from "dayjs";
 import { styled } from "nativewind";
 import { useState } from "react";
@@ -19,6 +18,7 @@ import { SafeAreaView as RNSafeAreaView } from "react-native-safe-area-context";
 
 const SafeAreaView = styled(RNSafeAreaView);
 export default function App() {
+  const { user } = useUser();
   const [expandedSubscriptionId, setExpandedSubscriptionId] = useState<
     string | null
   >(null);
@@ -31,8 +31,22 @@ export default function App() {
           <>
             <View className="home-header">
               <View className="home-user">
-                <Image source={images.avatar} className="home-avatar" />
-                <Text className="home-user-name">{HOME_USER.name}</Text>
+                {user?.imageUrl ? (
+                  <Image
+                    source={{ uri: user.imageUrl }}
+                    className="home-avatar"
+                    accessibilityLabel="Profile photo"
+                  />
+                ) : (
+                  <View className="home-avatar home-avatar-fallback">
+                    <Text className="home-avatar-fallback-text">
+                      {(user?.firstName?.[0] ?? "?").toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+                <Text className="home-user-name">
+                  {[user?.firstName, user?.lastName].filter(Boolean).join(" ") || "User"}
+                </Text>
               </View>
             </View>
             <View className="home-balance-card">

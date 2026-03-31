@@ -51,6 +51,23 @@ declare global {
 
   interface ListHeadingProps {
     title: string;
+    onPress?: () => void;
+  }
+
+  interface InsightChartEntry {
+    day: string;
+    value: number;
+    active?: boolean;
+  }
+
+  interface InsightHistoryItem {
+    id: string;
+    icon: ImageSourcePropType;
+    name: string;
+    date: string;
+    price: number;
+    billing: string;
+    color: string;
   }
 }
 

@@ -1,13 +1,17 @@
 import LOGO from "@/assets/icons/logo.png";
-import { authStyles } from "@/constants/authStyles";
 import { Image, Text, View } from "react-native";
 
 export const AuthHeader = () => (
-  <View style={authStyles.logoRow}>
-    <Image source={LOGO} style={authStyles.logoIcon} resizeMode="cover" />
+  <View className="auth-logo-wrap">
+    <Image
+      source={LOGO}
+      className="auth-logo-icon"
+      resizeMode="cover"
+      accessibilityLabel="Recurly logo"
+    />
     <View>
-      <Text style={authStyles.logoName}>Recurly</Text>
-      <Text style={authStyles.logoSub}>SMART BILLING</Text>
+      <Text className="auth-wordmark">Recurly</Text>
+      <Text className="auth-wordmark-sub">SMART BILLING</Text>
     </View>
   </View>
 );

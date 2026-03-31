@@ -3,14 +3,14 @@ import { clsx } from "clsx";
 import dayjs from "dayjs";
 import React, { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
 const CATEGORIES = [
@@ -82,7 +82,7 @@ const CreateSubscriptionModal = ({
       .toISOString();
 
     const newSubscription: Subscription = {
-      id: `sub-${Date.now()}`,
+      id: `sub-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       name: name.trim(),
       price: parsedPrice,
       currency: "USD",
@@ -137,6 +137,7 @@ const CreateSubscriptionModal = ({
                     placeholderTextColor="rgba(0,0,0,0.35)"
                     returnKeyType="next"
                     autoCapitalize="words"
+                    maxLength={100}
                   />
                 </View>
 
@@ -151,6 +152,7 @@ const CreateSubscriptionModal = ({
                     placeholderTextColor="rgba(0,0,0,0.35)"
                     keyboardType="decimal-pad"
                     returnKeyType="done"
+                    maxLength={10}
                   />
                 </View>
 

@@ -1,8 +1,8 @@
 import "@/global.css";
-import { ClerkProvider } from "@clerk/expo";
+import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { useFonts } from "expo-font";
-import { SplashScreen, Stack } from "expo-router";
+import { Redirect, SplashScreen, Stack } from "expo-router";
 import { useEffect } from "react";
 
 SplashScreen.preventAutoHideAsync();
@@ -13,6 +13,13 @@ if (!publishableKey) {
   throw new Error(
     "Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY — add it to your .env file",
   );
+}
+
+function RootNavigator() {
+  const { isSignedIn, isLoaded } = useAuth();
+  if (!isLoaded) return null;
+  if (!isSignedIn) return <Redirect href="/onboarding" />;
+  return <Stack screenOptions={{ headerShown: false }} />;
 }
 
 export default function RootLayout() {
@@ -26,14 +33,12 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontLoaded) {
-      SplashScreen.hideAsync();
-    }
+    if (fontLoaded) SplashScreen.hideAsync();
   }, [fontLoaded]);
 
   return (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      {fontLoaded ? <Stack screenOptions={{ headerShown: false }} /> : null}
+      {fontLoaded ? <RootNavigator /> : null}
     </ClerkProvider>
   );
 }
